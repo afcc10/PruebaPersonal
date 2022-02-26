@@ -8,7 +8,8 @@ namespace PruebaPersonal.Models
     {
         [Key]
         public string NumeroPoliza { get; set; }
-        public DateTime FechaPoliza { get; set; }
+        public DateTime FechaInicioPoliza { get; set; }
+        public DateTime FechaFinPoliza { get; set; }
         public List<CoberturaPolizaModels> Coberturas { get; set; }
         public double ValorMaximoCubierto { get; set; }
         public string NombrePlanPoliza { get; set; } 
