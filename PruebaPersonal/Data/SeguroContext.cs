@@ -71,7 +71,7 @@ namespace PruebaPersonal.Data
 
             SqlParameter[] pamid = new SqlParameter[2];
             pamid[0] = new SqlParameter("@numeroPoliza", numeroPoliza);
-            pamid[1] = new SqlParameter("@placa", placa);
+            pamid[1] = new SqlParameter("@placa", string.IsNullOrEmpty(placa) ? "" : placa);
 
             return this.PolizasModels.FromSqlRaw(sql, pamid).ToList();
 
