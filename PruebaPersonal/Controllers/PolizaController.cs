@@ -6,16 +6,13 @@ using PruebaPersonal.Models;
 using PruebaPersonal.Models.Dtos;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Web.Helpers;
-using System.Web.Http;
+using System.Runtime.InteropServices;
 
 namespace PruebaPersonal.Controllers
 {
     [ApiController]
-    [Microsoft.AspNetCore.Mvc.Route("[controller]")]
+    [Route("api/[controller]")]
     public class PolizaController : ControllerBase
     {       
         private readonly ILogger<PolizaController> _logger;
@@ -28,8 +25,8 @@ namespace PruebaPersonal.Controllers
             this.poliza = new Poliza(seguroContext);
         }
 
-        [Microsoft.AspNetCore.Mvc.Route("[action]")]
-        [Microsoft.AspNetCore.Mvc.HttpPost]
+        [Route("[action]")]
+        [HttpPost]
         public IActionResult Post(PolizaDto resquet)
         {           
 
@@ -41,8 +38,19 @@ namespace PruebaPersonal.Controllers
             }
             else
             {
-                return new OkObjectResult(new { status = HttpStatusCode.BadRequest });
+                
+                return new OkObjectResult(new { status = HttpStatusCode.BadRequest, message = "Error de datos o el usuario ya tiene una poliza en el rango de fechas enviado" });
             }            
-        }        
+        }
+
+        
+        [HttpGet()]
+        public IActionResult Get([Optional] string numeroPoliza, [Optional]  string placa)
+        {
+            var model = poliza.ConsultaPolizas(numeroPoliza, placa);
+
+
+            return new OkObjectResult(new { status = HttpStatusCode.OK, data = model });
+        }
     }
 }
