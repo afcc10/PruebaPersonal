@@ -1,4 +1,5 @@
 ﻿using PruebaPersonal.Data;
+using PruebaPersonal.Data.Dao;
 using PruebaPersonal.Models;
 using PruebaPersonal.Models.Dtos;
 using System;
@@ -9,27 +10,35 @@ using System.Net.Http;
 namespace PruebaPersonal.BussinesLogic
 {
     public class Poliza : IPoliza
-    {
-        private readonly SeguroContext seguroContext;
+    {       
+        private readonly IPolizaDao polizaDao;
 
-        public Poliza(SeguroContext seguroContext)
-        {
-            this.seguroContext = seguroContext;
+        public Poliza(IPolizaDao polizaDao)
+        {            
+            this.polizaDao = polizaDao;
+        }
+
+        public IEnumerable<PolizaModels> ConsultaPolizas(string numeroPoliza, string placa)
+        { 
+            var polizaModels = polizaDao.ConsultaPolizaxPlacaoNumero(numeroPoliza, placa);
+
+            return polizaModels;
         }
 
         public PolizaModels Crear(PolizaDto poliza)
         {
             PolizaModels data = new();
+            
+            PolizaCoberturasModels polizaCoberturasModels = new();
 
-            ClienteModels clienteModels = seguroContext.ClientesModels
-                                                        .Where(x => x.IdentificacionCliente.Equals(poliza.NumeroidentificacionCliente))
-                                                        .FirstOrDefault();
+            ClienteModels clienteModels = polizaDao.GetClientesByNumeroIdentificacionCliente(poliza.NumeroidentificacionCliente);
 
-            List<CoberturaPolizaModels> coberturaPolizaModels = seguroContext.CoberturasPolizaModels
-                                                                        .Where(x => x.Id == Guid.Parse(poliza.IdCobertura))
-                                                                        .ToList();
+            CoberturaPolizaModels coberturaPolizaModels = polizaDao.GetCoberturaPolizaModelsById(poliza.IdCobertura);
 
-            if (clienteModels == null || coberturaPolizaModels == null)
+            string numeroPoliza = polizaDao.GetNumeroPolizaByFechasAndIdCliente(poliza.NumeroidentificacionCliente, poliza.FechaInicioPoliza, poliza.FechaFinPoliza);
+
+
+            if (clienteModels == null || !String.IsNullOrEmpty(numeroPoliza))
             {
                 return data;
             }
@@ -37,20 +46,28 @@ namespace PruebaPersonal.BussinesLogic
             {
                 data = new()
                 {
-                    NumeroPoliza = poliza.NumeroPoliza,
-                    Cliente = clienteModels,
-                    Coberturas = coberturaPolizaModels,
+                    NumeroPoliza = poliza.NumeroPoliza,                    
+                    ClienteIdentificacionCliente = poliza.NumeroidentificacionCliente,
                     FechaInicioPoliza = poliza.FechaInicioPoliza,
                     FechaFinPoliza = poliza.FechaFinPoliza,
                     NombrePlanPoliza = poliza.NombrePlanPoliza,
                     ValorMaximoCubierto = poliza.ValorMaximoCubierto
                 };
 
-                seguroContext.Add(data);
-                seguroContext.SaveChanges();
+                polizaCoberturasModels = new()
+                {
+                    Id = Guid.NewGuid(),
+                    polizaNumeroPoliza = poliza.NumeroPoliza,
+                    CoberturaId = Guid.Parse(poliza.IdCobertura)                   
+                };
+
+                polizaDao.CrearPoliza(data);
+                polizaDao.CrearPolizaCoberturas(polizaCoberturasModels);
+
+                data.NumeroPoliza = poliza.NumeroPoliza;
 
                 return data;
-            }            
+            }
         }
     }
 }

@@ -1,25 +1,14 @@
-﻿using System.Net;
-using System.Web.Http;
+﻿using PruebaPersonal.Models;
+using System.Collections.Generic;
+using System.Net;
 
-namespace PruebaIngresoBibliotecario.Api.Helpres
+namespace PruebaPersonal.Helpers
 {
     public class ApiResponse
     {
-        ///<summary>IsSuccess</summary>
-        public bool IsSuccess { get; set; }
-        /// <summary>StatusCode</summary>
-        public HttpStatusCode StatusCode { get; set; }
-        ///<summary>Result</summary>
-        public object Result { get; set; }
-        ///<summary>Error</summary>
-        public ApiErrorResponse Error { get; set; }
-    }
-
-    public class ApiErrorResponse
-    {
-        ///<summary>Message</summary>
+        public HttpStatusCode? status { get; set; }
+        public IEnumerable<PolizaModels>? data { get; set; }
         public string Message { get; set; }
-        ///<summary>Info</summary>
-        public object Info { get; set; }
+        public PolizaModels? poliza { get; set; }
     }
 }
