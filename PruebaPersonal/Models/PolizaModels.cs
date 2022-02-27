@@ -12,8 +12,8 @@ namespace PruebaPersonal.Models
         public DateTime FechaInicioPoliza { get; set; }
         public DateTime FechaFinPoliza { get; set; }       
         public double ValorMaximoCubierto { get; set; }
-        public string NombrePlanPoliza { get; set; } 
+        public string NombrePlanPoliza { get; set; }         
         public string ClienteIdentificacionCliente { get; set; }
-        public virtual ClienteModels Cliente { get; set; }            
+        public virtual ClienteModels Cliente { get; set; }                  
     }
 }

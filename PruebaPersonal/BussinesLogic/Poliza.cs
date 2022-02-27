@@ -1,4 +1,5 @@
 ﻿using PruebaPersonal.Data;
+using PruebaPersonal.Data.Dao;
 using PruebaPersonal.Models;
 using PruebaPersonal.Models.Dtos;
 using System;
@@ -9,17 +10,17 @@ using System.Net.Http;
 namespace PruebaPersonal.BussinesLogic
 {
     public class Poliza : IPoliza
-    {
-        private readonly SeguroContext seguroContext;
+    {       
+        private readonly IPolizaDao polizaDao;
 
-        public Poliza(SeguroContext seguroContext)
-        {
-            this.seguroContext = seguroContext;
+        public Poliza(IPolizaDao polizaDao)
+        {            
+            this.polizaDao = polizaDao;
         }
 
         public IEnumerable<PolizaModels> ConsultaPolizas(string numeroPoliza, string placa)
         { 
-            var polizaModels = seguroContext.ConsultaPolizaxPlacaoNumero(numeroPoliza, placa);
+            var polizaModels = polizaDao.ConsultaPolizaxPlacaoNumero(numeroPoliza, placa);
 
             return polizaModels;
         }
@@ -27,23 +28,15 @@ namespace PruebaPersonal.BussinesLogic
         public PolizaModels Crear(PolizaDto poliza)
         {
             PolizaModels data = new();
+            
             PolizaCoberturasModels polizaCoberturasModels = new();
 
-            ClienteModels clienteModels = seguroContext.ClientesModels
-                                                        .Where(x => x.IdentificacionCliente.Equals(poliza.NumeroidentificacionCliente))
-                                                        .FirstOrDefault();
+            ClienteModels clienteModels = polizaDao.GetClientesByNumeroIdentificacionCliente(poliza.NumeroidentificacionCliente);
 
-            CoberturaPolizaModels coberturaPolizaModels = seguroContext.CoberturasPolizaModels
-                                                                        .Where(x => x.Id == Guid.Parse(poliza.IdCobertura))
-                                                                        .FirstOrDefault();
+            CoberturaPolizaModels coberturaPolizaModels = polizaDao.GetCoberturaPolizaModelsById(poliza.IdCobertura);
 
-            string numeroPoliza = seguroContext.PolizasModels
-                                                .Where(x => x.ClienteIdentificacionCliente.Equals(poliza.NumeroidentificacionCliente)
-                                                    && ((x.FechaInicioPoliza.Date >= poliza.FechaInicioPoliza.Date && x.FechaFinPoliza.Date <= poliza.FechaInicioPoliza.Date) ||
-                                                    x.FechaInicioPoliza.Date >= poliza.FechaFinPoliza.Date && x.FechaFinPoliza.Date <= poliza.FechaInicioPoliza.Date))
-                                        .Select(x=>x.NumeroPoliza).FirstOrDefault();
+            string numeroPoliza = polizaDao.GetNumeroPolizaByFechasAndIdCliente(poliza.NumeroidentificacionCliente, poliza.FechaInicioPoliza, poliza.FechaFinPoliza);
 
-            
 
             if (clienteModels == null || !String.IsNullOrEmpty(numeroPoliza))
             {
@@ -53,8 +46,8 @@ namespace PruebaPersonal.BussinesLogic
             {
                 data = new()
                 {
-                    NumeroPoliza = poliza.NumeroPoliza,
-                    Cliente = clienteModels,                    
+                    NumeroPoliza = poliza.NumeroPoliza,                    
+                    ClienteIdentificacionCliente = poliza.NumeroidentificacionCliente,
                     FechaInicioPoliza = poliza.FechaInicioPoliza,
                     FechaFinPoliza = poliza.FechaFinPoliza,
                     NombrePlanPoliza = poliza.NombrePlanPoliza,
@@ -64,18 +57,17 @@ namespace PruebaPersonal.BussinesLogic
                 polizaCoberturasModels = new()
                 {
                     Id = Guid.NewGuid(),
-                    Cobertura = coberturaPolizaModels,
-                    poliza = data
+                    polizaNumeroPoliza = poliza.NumeroPoliza,
+                    CoberturaId = Guid.Parse(poliza.IdCobertura)                   
                 };
 
-                seguroContext.Add(data);
-                seguroContext.SaveChanges();
+                polizaDao.CrearPoliza(data);
+                polizaDao.CrearPolizaCoberturas(polizaCoberturasModels);
 
-                seguroContext.Add(polizaCoberturasModels);
-                seguroContext.SaveChanges();
+                data.NumeroPoliza = poliza.NumeroPoliza;
 
                 return data;
-            }            
+            }
         }
     }
 }

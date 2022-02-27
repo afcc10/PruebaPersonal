@@ -4,10 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PruebaPersonal.BussinesLogic;
 using PruebaPersonal.Data;
+using PruebaPersonal.Data.Dao;
 using PruebaPersonal.Helpers;
 using PruebaPersonal.Models;
 using PruebaPersonal.Models.Dtos;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Net;
 using System.Runtime.InteropServices;
 
@@ -17,35 +20,14 @@ namespace PruebaPersonal.Controllers
     [Route("api/[controller]")]
     [Authorize]
     public class PolizaController : ControllerBase
-    {
-        private readonly ILogger<PolizaController> _logger;
-        private readonly IPoliza poliza = null;
-        private readonly SeguroContext seguroContext;
-        private readonly IConfiguration _config;
+    {        
+        private readonly IPoliza poliza = null;   
 
-        public PolizaController(ILogger<PolizaController> logger, SeguroContext seguroContext, IConfiguration config)
-        {
-            _logger = logger;
-            this.poliza = new Poliza(seguroContext);
-            this._config = config;
-        }
-
-        [Route("[action]")]
-        [HttpPost]
-        [AllowAnonymous]
-        public ActionResult<object> CrearToken([FromBody] PersonaDto persona)
-        {
-            var secret = this._config.GetValue<string>("Secret");
-            var jwtHelper = new JWTHelper(secret);
-            var token = jwtHelper.createToken(persona.Usuario);
-
-            return Ok(new
-            {
-                Ok = true,
-                msg = "Token creado con exito",
-                token
-            });
-        }
+        public PolizaController()
+        {           
+            IPolizaDao polizaDao = new PolizaDao();
+            this.poliza = new Poliza(polizaDao);            
+        }        
 
         [Route("[action]")]
         [HttpPost]
@@ -55,13 +37,13 @@ namespace PruebaPersonal.Controllers
 
             if (model != null)
             {
-                return new OkObjectResult (new {status = HttpStatusCode.OK, data = model });
+                return new OkObjectResult (new ApiResponse { status = HttpStatusCode.OK, poliza = model });
             }
             else
             {
                 
-                return new OkObjectResult(new { status = HttpStatusCode.BadRequest, 
-                                                message = "Error de datos o el usuario ya tiene una poliza en el rango de fechas enviado" });
+                return new OkObjectResult(new ApiResponse { status = HttpStatusCode.BadRequest, 
+                                                Message = "Error de datos o el usuario ya tiene una poliza en el rango de fechas enviado" });
             }            
         }
 
@@ -71,16 +53,27 @@ namespace PruebaPersonal.Controllers
         {
             var model = poliza.ConsultaPolizas(numeroPoliza, placa);
 
-            if (model != null)
+            if (IsIENumerableLleno(model))
             {
-                return new OkObjectResult(new { status = HttpStatusCode.OK, data = model });
+                return new OkObjectResult(new ApiResponse { status = HttpStatusCode.OK, data = model });
             }
             else
             {
-                return new OkObjectResult(new { status = HttpStatusCode.BadRequest, 
-                                                message = "No se encontraron resultados" });
+                return new OkObjectResult(new ApiResponse { status = HttpStatusCode.BadRequest,
+                                                            Message = "No se encontraron resultados" });
             }
-           
+
+        }  
+	
+        private bool IsIENumerableLleno(IEnumerable<PolizaModels> ieNumerable)
+        {
+            bool isFull = false;
+            foreach (PolizaModels item in ieNumerable)
+            {
+                isFull = true;
+                break;
+            }
+            return isFull;
         }
     }
 }
