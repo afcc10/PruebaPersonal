@@ -1,13 +1,15 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PruebaPersonal.Models;
+using PruebaPersonal.Models.Dtos;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PruebaPersonal.Data
 {
     public class SeguroContext : DbContext
-    {
+    {      
         public SeguroContext(DbContextOptions<SeguroContext> options) : base(options)
         {
 
@@ -16,6 +18,7 @@ namespace PruebaPersonal.Data
         public DbSet<ClienteModels> ClientesModels { get; set; }
         public DbSet<CoberturaPolizaModels> CoberturasPolizaModels { get; set; }
         public DbSet<PolizaModels> PolizasModels { get; set; }
+        public DbSet<PolizaCoberturasModels> PolizaCoberturasModels { get; set; }
 
         public  AutomotorModels MostrarAutomotores(string placa)
 
@@ -58,6 +61,19 @@ namespace PruebaPersonal.Data
             SqlParameter pamid = new SqlParameter("@identificion", numeroIdentificacion);
 
             return this.ClientesModels.FromSqlRaw(sql, pamid).SingleOrDefault();
+
+        }
+
+        public IEnumerable<PolizaModels> ConsultaPolizaxPlacaoNumero(string numeroPoliza,string placa)
+
+        {
+            String sql = "sp_consultar_polizas @numeroPoliza,@placa";            
+
+            SqlParameter[] pamid = new SqlParameter[2];
+            pamid[0] = new SqlParameter("@numeroPoliza", numeroPoliza);
+            pamid[1] = new SqlParameter("@placa", placa);
+
+            return this.PolizasModels.FromSqlRaw(sql, pamid).ToList();
 
         }
     }

@@ -17,19 +17,35 @@ namespace PruebaPersonal.BussinesLogic
             this.seguroContext = seguroContext;
         }
 
+        public IEnumerable<PolizaModels> ConsultaPolizas(string numeroPoliza, string placa)
+        { 
+            var polizaModels = seguroContext.ConsultaPolizaxPlacaoNumero(numeroPoliza, placa);
+
+            return polizaModels;
+        }
+
         public PolizaModels Crear(PolizaDto poliza)
         {
             PolizaModels data = new();
+            PolizaCoberturasModels polizaCoberturasModels = new();
 
             ClienteModels clienteModels = seguroContext.ClientesModels
                                                         .Where(x => x.IdentificacionCliente.Equals(poliza.NumeroidentificacionCliente))
                                                         .FirstOrDefault();
 
-            List<CoberturaPolizaModels> coberturaPolizaModels = seguroContext.CoberturasPolizaModels
+            CoberturaPolizaModels coberturaPolizaModels = seguroContext.CoberturasPolizaModels
                                                                         .Where(x => x.Id == Guid.Parse(poliza.IdCobertura))
-                                                                        .ToList();
+                                                                        .FirstOrDefault();
 
-            if (clienteModels == null || coberturaPolizaModels == null)
+            string numeroPoliza = seguroContext.PolizasModels
+                                                .Where(x => x.ClienteIdentificacionCliente.Equals(poliza.NumeroidentificacionCliente)
+                                                    && ((x.FechaInicioPoliza.Date >= poliza.FechaInicioPoliza.Date && x.FechaFinPoliza.Date <= poliza.FechaInicioPoliza.Date) ||
+                                                    x.FechaInicioPoliza.Date >= poliza.FechaFinPoliza.Date && x.FechaFinPoliza.Date <= poliza.FechaInicioPoliza.Date))
+                                        .Select(x=>x.NumeroPoliza).FirstOrDefault();
+
+            
+
+            if (clienteModels == null || !String.IsNullOrEmpty(numeroPoliza))
             {
                 return data;
             }
@@ -38,15 +54,24 @@ namespace PruebaPersonal.BussinesLogic
                 data = new()
                 {
                     NumeroPoliza = poliza.NumeroPoliza,
-                    Cliente = clienteModels,
-                    Coberturas = coberturaPolizaModels,
+                    Cliente = clienteModels,                    
                     FechaInicioPoliza = poliza.FechaInicioPoliza,
                     FechaFinPoliza = poliza.FechaFinPoliza,
                     NombrePlanPoliza = poliza.NombrePlanPoliza,
                     ValorMaximoCubierto = poliza.ValorMaximoCubierto
                 };
 
+                polizaCoberturasModels = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Cobertura = coberturaPolizaModels,
+                    poliza = data
+                };
+
                 seguroContext.Add(data);
+                seguroContext.SaveChanges();
+
+                seguroContext.Add(polizaCoberturasModels);
                 seguroContext.SaveChanges();
 
                 return data;
