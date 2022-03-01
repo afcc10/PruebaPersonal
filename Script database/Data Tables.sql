@@ -1,0 +1,8 @@
+INSERT INTO AutomotoresModels ( [Modelo], [Placa], [TieneInspeccion]) VALUES ('2008' ,'CPX236' ,'1' )
+INSERT INTO ClientesModels ( [AutomotorPlaca], [CiudadResidencia], [DireccionResidencia], [FechaNacimiento], [IdentificacionCliente], [NombreCliente]) VALUES ('CPX236' ,'Cali' ,'Calle 123' ,'1990-10-08 00:00:00.0000000' ,'11442589635' ,'Juan' )
+INSERT INTO CoberturasPolizaModels ( [Descripcion], [Id]) VALUES ('Poliza full' ,'' )
+INSERT INTO PolizaCoberturasModels ( [CoberturaId], [Id], [polizaNumeroPoliza]) VALUES ('' ,'' ,'123456' )
+INSERT INTO PolizaCoberturasModels ( [CoberturaId], [Id], [polizaNumeroPoliza]) VALUES ('' ,'' ,'23232' )
+INSERT INTO PolizasModels ( [ClienteIdentificacionCliente], [FechaFinPoliza], [FechaInicioPoliza], [NombrePlanPoliza], [NumeroPoliza], [ValorMaximoCubierto]) VALUES ('11442589635' ,'2023-02-26 23:13:17.1770000' ,'2022-02-26 23:13:17.1770000' ,'Poliza full' ,'123456' ,'1.5e+007' )
+INSERT INTO PolizasModels ( [ClienteIdentificacionCliente], [FechaFinPoliza], [FechaInicioPoliza], [NombrePlanPoliza], [NumeroPoliza], [ValorMaximoCubierto]) VALUES ('11442589635' ,'2022-02-26 23:48:07.4050000' ,'2022-02-26 23:48:07.4050000' ,'ssssss' ,'23232' ,'333333' )
+INSERT INTO PolizasModels ( [ClienteIdentificacionCliente], [FechaFinPoliza], [FechaInicioPoliza], [NombrePlanPoliza], [NumeroPoliza], [ValorMaximoCubierto]) VALUES ('11442589635' ,'2022-02-27 21:01:33.2250000' ,'2022-02-27 21:01:33.2250000' ,'Full' ,'55555' ,'2.5e+007' )
